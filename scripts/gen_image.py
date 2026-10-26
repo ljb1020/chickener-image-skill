@@ -7,11 +7,13 @@ agent reads them and explains to the user in their own language.
 Usage:
   python gen_image.py --check
   python gen_image.py --set-key sk-xxxx
+  python gen_image.py --set-key            (prompts for the key, input hidden)
   python gen_image.py --prompt "a cat" --size 4k
 """
 
 import argparse
 import base64
+import getpass
 import json
 import os
 import re
@@ -21,7 +23,7 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 DEFAULT_BASE_URL = "https://chickener.top"
 CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".chickener", "config.json")
 MODELS = ("gpt-image-2", "gpt-image-2.5")
@@ -84,8 +86,25 @@ def resolve_base_url():
     return (base or DEFAULT_BASE_URL).rstrip("/")
 
 
+def prompt_key():
+    # Shown directly to the user in their own terminal, so it is bilingual.
+    if sys.stdin.isatty():
+        return getpass.getpass(
+            "请粘贴 API Key 后按回车（粘贴后不显示任何字符，是正常的）\n"
+            "Paste your API key and press Enter (nothing is shown while pasting): ")
+    # Terminals without a real console (e.g. Git Bash/mintty) cannot hide input.
+    print("请粘贴 API Key 后按回车\n"
+          "Paste your API key and press Enter: ", end="", flush=True)
+    # Windows PowerShell 5.1 prefixes piped input with a UTF-8 BOM.
+    key = sys.stdin.buffer.readline().decode("utf-8-sig", errors="replace")
+    print()
+    return key
+
+
 def set_key(key):
-    key = key.strip().strip('"').strip("'")
+    if not key:
+        key = prompt_key()
+    key = key.strip().lstrip("﻿").strip().strip('"').strip("'")
     if not key.startswith("sk-") or len(key) < 20 or re.search(r"\s", key):
         fail("this does not look like a chickener API key (expected sk-..., no spaces).",
              "Copy the whole key from the token page again.")
@@ -246,7 +265,8 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Generate images with chickener.top (up to 4K).")
     parser.add_argument("--check", action="store_true", help="verify the API key and token group")
-    parser.add_argument("--set-key", metavar="KEY", help="save the API key to " + CONFIG_PATH)
+    parser.add_argument("--set-key", metavar="KEY", nargs="?", const="",
+                        help="save the API key to %s; without KEY, prompt for it (input hidden)" % CONFIG_PATH)
     parser.add_argument("--prompt", help="what to draw")
     parser.add_argument("--size", default="1024x1024",
                         help="WIDTHxHEIGHT or alias: " + ", ".join(SIZE_ALIASES) + " (default 1024x1024)")
@@ -257,7 +277,7 @@ def main():
     parser.add_argument("--version", action="version", version=VERSION)
     args = parser.parse_args()
 
-    if args.set_key:
+    if args.set_key is not None:
         set_key(args.set_key)
     elif args.check:
         check()

@@ -22,21 +22,32 @@ python scripts/gen_image.py --check
 ```
 
 - `OK: ready` → go to step 2.
-- `API key is not configured` → walk the user through **Configure the API key**
-  in this skill's `README.md` (section 2). Short version:
-  1. Log in to https://chickener.top/keys (sidebar: **API 密钥**) → **创建 API 密钥**.
-  2. Set **分组** to **【GPT】生图分组**. Other groups cannot draw images.
-  3. Click **复制密钥** (the key starts with `sk-`) and paste it to you.
-  4. Save it with `python scripts/gen_image.py --set-key <key>`, then run `--check` again.
+- `API key is not configured` → send the user exactly this, in their language:
+
+  > 生图前需要先配置一次 API Key：打开 https://chickener.top/keys → 点 **创建 API 密钥**
+  > → **分组选【GPT】生图分组** → 创建后点 **复制密钥** → 把密钥直接发给我，我帮你保存。
+
+  When the key arrives, run `python scripts/gen_image.py --set-key <key>`, then
+  `--check`, and continue to step 2 once it prints `OK: ready`.
 - Any other `ERROR` / `HINT` line → explain it to the user in plain words and
   follow the hint.
 
 Key rules:
+- This is the only setup flow. Do not invent other ways (PowerShell
+  `Read-Host`, editing files by hand, environment variables, etc.).
+- Only if the user says they do not want to send the key in chat: give them
+  this one command with the full absolute path of this skill's script filled
+  in, to run in their own terminal. It prompts for the key and hides the input
+  (nothing shows while pasting; that is normal). Then run `--check` yourself.
+
+  ```bash
+  python "<absolute path to>/scripts/gen_image.py" --set-key
+  ```
 - The key is stored in `~/.chickener/config.json`. Never print the key, never
   write it anywhere else (no project files, no notes, no git).
-- If the user pastes the key in chat, save it with `--set-key` and tell them
-  once: the key is now in this chat history; they can regenerate it on the
-  token page if that worries them.
+- After saving a key the user sent in chat, tell them once: the key is now in
+  this chat history; they can delete it and create a new one on the key page
+  if that worries them.
 
 ## Step 2 — generate
 

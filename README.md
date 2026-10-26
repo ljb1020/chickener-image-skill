@@ -68,15 +68,17 @@ Windows 常见情况：
 3. **分组一定要选【GPT】生图分组**。选其他分组无法生图。
 4. 创建后点 **复制密钥**，得到一串 `sk-` 开头的字符。
 
-**第 2 步：保存到电脑上**
+**第 2 步：把密钥发给你的 Agent**
 
-最简单的办法：把 key 发给你的 Agent，它会执行下面的命令帮你保存：
+直接把复制的密钥粘贴到聊天里发给 Agent，它会帮你保存并检查。这一步就完成了。
 
-```bash
-python scripts/gen_image.py --set-key sk-你的key
-```
+> 不想把密钥发在聊天里？在你自己的终端运行下面这条命令（让 Agent 告诉你完整路径），出现提示后粘贴密钥并按回车。**粘贴后屏幕上不显示任何字符，这是正常的**，直接回车即可。看到 `OK: key ... saved` 就保存好了。
+>
+> ```bash
+> python scripts/gen_image.py --set-key
+> ```
 
-key 会保存在固定位置：
+密钥会保存在固定位置：
 
 | 系统 | 配置文件位置 |
 | --- | --- |
@@ -84,9 +86,9 @@ key 会保存在固定位置：
 | macOS | `/Users/你的用户名/.chickener/config.json` |
 | Linux | `/home/你的用户名/.chickener/config.json` |
 
-文件内容只有一行：`{"api_key": "sk-你的key"}`。不想把 key 发给 Agent，也可以自己按这个位置和内容新建文件。
+文件内容只有一行：`{"api_key": "sk-你的key"}`。
 
-**第 3 步：检查配置**
+**第 3 步：检查配置（Agent 会自动做）**
 
 ```bash
 python scripts/gen_image.py --check
@@ -130,7 +132,8 @@ python scripts/gen_image.py --prompt "赛博朋克城市夜景" --size 4k-portra
 | 提示 | 原因和解决 |
 | --- | --- |
 | `API key is not configured` | 还没保存 key，回到第 2 节。 |
-| `the API key was rejected (HTTP 401)` | key 复制错了，或者已被删除、禁用。重新复制一次再 `--set-key`。 |
+| `the API key was rejected (HTTP 401)` | key 复制错了，或者已被删除、禁用。重新复制一次发给 Agent。 |
+| `this does not look like a chickener API key` | 粘贴的内容不完整或为空。重新点"复制密钥"，确认复制到的是 `sk-` 开头的整串字符。 |
 | `the token cannot use this model` / `cannot see any image model` | 令牌分组没选【GPT】生图分组。到 API 密钥页面编辑该令牌，把分组改过来。 |
 | `not enough balance or token quota` | 账户余额或令牌额度不足，先充值，或调高令牌额度。 |
 | `request timed out` | 网络慢或图太大。再试一次；还不行就先用小一点的尺寸。 |
